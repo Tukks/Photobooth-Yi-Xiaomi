@@ -8,14 +8,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-
+import com.yiphotobooth.FileManager.DownloadFileFromURL;
 /**
  * Created by giuse_000 on 06/03/2016.
  */
 public class ExecuteActionCamera {
     ConnectionCamera connectionCamera;
     String action;
-
+    DownloadFileFromURL dl = new DownloadFileFromURL();
     public ExecuteActionCamera(ConnectionCamera connectionCamera) {
 
         if (!connectionCamera.getTelnetCamera().isConnected()) {
@@ -39,59 +39,67 @@ public class ExecuteActionCamera {
         out.flush();
 
         try {
-            int value;
-            char[] cbuf = new char[1024];
-            in.read(cbuf, 0, 1024);
-            for (int i = 0; 0 != cbuf[i]; i++) {
-                // converts int to character
-                char c = (char) cbuf[i];
-                response += c;
-                // prints character
-            }
-            JSONObject obj = new JSONObject(response);
-
-
-            if (obj.get("rval").toString().equals("-4")) {
-                String tokenCamera = "";
-                out.write("{\"msg_id\":257,\"token\":0}"); //create Connection
-                out.flush();
+            JSONObject obj;
+            if(ActionCamera.TAKE_PHOTO.equals(action)){
+                char[] cbuf = new char[2048];
 
                 String responseCamera = "";
-                in.read(cbuf, 0, 512);
-                for (int i = 0; 0 != cbuf[i]; i++) {
-                    // converts int to character
-                    char c = (char) cbuf[i];
-                    responseCamera += c;
-                    // prints character
-                }
-                obj = new JSONObject(responseCamera);
-                responseCamera = "";
+                Boolean bool = true;
 
-                try {
-                    tokenCamera = obj.get("param").toString();
-                } catch (JSONException j) {
-                    in.read(cbuf, 0, 512);
+                while(bool) {
+                    in.read(cbuf, 0, 2048);
                     for (int i = 0; 0 != cbuf[i]; i++) {
+                        // converts int to character
                         char c = (char) cbuf[i];
                         responseCamera += c;
+                     if (c == '}') {
+                          if(responseCamera.contains("}") && responseCamera.contains("{")) {
+                              obj = new JSONObject(responseCamera);
+                              responseCamera = "";
+                              if (obj.has("type") && obj.getString("type").equals("photo_taken")) {
+                                  String[] split = obj.getString("param").split("/");
+                                  String name = split[split.length - 1];
+                                  dl.execute(name);
+                                  bool = false;
+                              }
+                          }
+
+                        }
+                        // prints character
                     }
-                    obj = new JSONObject(responseCamera);
-                    tokenCamera = obj.get("param").toString();
-                    System.out.println("FOUND IT");
+
+
                 }
-                String jsonRequest = new JSONObject(this.action).put("token", tokenCamera).toString();
-                out.write(jsonRequest); //send request
-                out.flush();
-                response = "";
-                in.read(cbuf, 0, 1024);
+            }else {
+                int value;
+                char[] cbuf = new char[4048];
+               // Boolean bool = true;
+
+
+                // while(bool) {
+                in.read(cbuf, 0, 4048);
+
                 for (int i = 0; 0 != cbuf[i]; i++) {
                     // converts int to character
                     char c = (char) cbuf[i];
                     response += c;
+
                     // prints character
                 }
+                // }
+                obj = new JSONObject(response);
+             response = "";
+                in.read(cbuf, 0, 4048);
 
+                for (int i = 0; 0 != cbuf[i]; i++) {
+                    // converts int to character
+                    char c = (char) cbuf[i];
+                    response += c;
 
+                    // prints character
+                }
+                // }
+                obj = new JSONObject(response);
             }
             out.flush();
             // out.close();

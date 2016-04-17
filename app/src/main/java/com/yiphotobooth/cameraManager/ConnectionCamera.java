@@ -26,7 +26,8 @@ public class ConnectionCamera extends AsyncTask<String, Void, String> {
     TelnetClient telnetCamera;
     PrintWriter out = null;
     BufferedReader in = null;
-
+   /* private Context mContext;
+    private View rootView;*/
 
     @Override
     protected String doInBackground(String... params) {
@@ -40,45 +41,32 @@ public class ConnectionCamera extends AsyncTask<String, Void, String> {
             out.write("{\"msg_id\":257,\"token\":0}"); //create Connection
             out.flush();
             int value;
-            char[] cbuf = new char[1024];
+            char[] cbuf = new char[2048];
 
             String responseCamera = "";
-            in.read(cbuf, 0, 1024);
-            for (int i = 0; 0 != cbuf[i]; i++) {
-                // converts int to character
-                char c = (char) cbuf[i];
-                responseCamera += c;
-                // prints character
-            }
-            obj = new JSONObject(responseCamera);
-            responseCamera = "";
+            Boolean bool = true;
 
-            try {
-                this.tokenCamera = obj.get("param").toString();
-            } catch (JSONException j) {
-                in.read(cbuf, 0, 1024);
+            while(bool) {
+                in.read(cbuf, 0, 2048);
                 for (int i = 0; 0 != cbuf[i]; i++) {
+                    // converts int to character
                     char c = (char) cbuf[i];
                     responseCamera += c;
+                    if (c == '}') {
+                        obj = new JSONObject(responseCamera);
+                        responseCamera = "";
+                        if (obj.has("param")) {
+                            this.tokenCamera = obj.get("param").toString();
+                            bool = false;
+                        }
+                    }
+                    // prints character
                 }
-                obj = new JSONObject(responseCamera);
-                tokenCamera = obj.get("param").toString();
-
             }
+
             out.flush();
 
-            // ActionCamera ac = ActionCamera.TAKE_PHOTO;
-            // out.write("{\"msg_id\":769,\"token\":"+ tokenCamera+"}");
-            out.flush();
-            in.read(cbuf, 0, 1024);
-            responseCamera = "";
-            for (int i = 0; 0 != cbuf[i]; i++) {
-                char c = (char) cbuf[i];
-                responseCamera += c;
-            }
-            // out.close();
-            //in.close();
-            //telnetCamera.disconnect();
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
@@ -91,72 +79,9 @@ public class ConnectionCamera extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String s) {
         super.onPostExecute(s);
-        ExecuteActionCamera execAC = new ExecuteActionCamera(this);
-        // execAC.makeAction(ActionCamera.ALLOW_STREAM);
-        execAC.makeAction(ActionCamera.TAKE_PHOTO);
 
-        //connection.execute();
-        // requestWindowFeature(Window.FEATURE_NO_TITLE);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        /*
-        VideoView videoView;
-
-        //Create a VideoView widget in the layout file
-        //use setContentView method to set content of the activity to the layout file which contains videoView
-        //this.setContentView(R.layout.videoplayer);
-
-        videoView = (VideoView)rootView.findViewById(R.id.video_view);
-//'{"msg_id":259,"token":%s,"param":"none_force"}'
-        //add controls to a MediaPlayer like play, pause.
-        MediaController mc = new MediaController(mContext);
-        videoView.setMediaController(mc);
-        //Set the path of Video or URI
-        videoView.setVideoURI(Uri.parse("rtsp://192.168.42.1/live"));
-        //
-
-        //Set the focus
-        videoView.requestFocus();
-        videoView.start();
-        */
     }
 
-    public String newTokenCamera() {
-        try {
-            out.write("{\"msg_id\":257,\"token\":0}"); //create Connection
-            out.flush();
-            int value;
-            char[] cbuf = new char[512];
-
-            String responseCamera = "";
-            in.read(cbuf, 0, 512);
-            for (int i = 0; 0 != cbuf[i]; i++) {
-                // converts int to character
-                char c = (char) cbuf[i];
-                responseCamera += c;
-                // prints character
-            }
-            JSONObject obj = new JSONObject(responseCamera);
-            responseCamera = "";
-
-            try {
-                this.tokenCamera = obj.get("param").toString();
-            } catch (JSONException j) {
-                in.read(cbuf, 0, 512);
-                for (int i = 0; 0 != cbuf[i]; i++) {
-                    char c = (char) cbuf[i];
-                    responseCamera += c;
-                }
-                obj = new JSONObject(responseCamera);
-                this.tokenCamera = obj.get("param").toString();
-                System.out.println("FOUND IT");
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return tokenCamera;
-    }
 
     public String getTokenCamera() {
         return tokenCamera;

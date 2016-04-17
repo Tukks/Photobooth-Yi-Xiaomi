@@ -1,12 +1,16 @@
 package com.yiphotobooth;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -27,7 +31,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class MainActivity extends ActionBarActivity {
+import static android.app.PendingIntent.getActivity;
+
+public class MainActivity extends Activity {
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -35,32 +41,52 @@ public class MainActivity extends ActionBarActivity {
      */
     private GoogleApiClient client;
 
-    VideoView videoView;
+   ConnectionCamera connection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //setContentView(R.layout.content_layout_id);
 
-        ConnectionCamera connection = new ConnectionCamera();
-
+        //Context cont= getApplicationContext();
+        connection = new ConnectionCamera();
         connection.execute("");
+        setContentView(R.layout.activity_main);
 
+        final Button button = (Button) findViewById(R.id.takePhoto);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                ExecuteActionCamera execAC = new ExecuteActionCamera(connection);
+                execAC.makeAction(ActionCamera.TAKE_PHOTO);
+            }
+        });
+        try {
+            connection.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
     @Override
     public void onStart() {
         super.onStart();
+        String urlLive="rtsp://192.168.42.1/live";
+        ExecuteActionCamera execAC = new ExecuteActionCamera(connection);
+        execAC.makeAction(ActionCamera.ALLOW_STREAM);
+        VideoView videoView = (VideoView) findViewById(R.id.video_view);
+        Uri uri=Uri.parse(urlLive);
 
+        videoView.setVideoURI(uri);
+        videoView.start();
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        Action viewAction = Action.newAction(
+//        client.connect();
+       /* Action viewAction = Action.newAction(
                 Action.TYPE_VIEW, // TODO: choose an action type.
                 "Main Page", // TODO: Define a title for the content shown.
                 // TODO: If you have web page content that matches this app activity's content,
@@ -68,9 +94,9 @@ public class MainActivity extends ActionBarActivity {
                 // Otherwise, set the URL to null.
                 Uri.parse("http://host/path"),
                 // TODO: Make sure this auto-generated app deep link URI is correct.
-                Uri.parse("android-app://com.yiphotobooth/http/host/path")
-        );
-        AppIndex.AppIndexApi.start(client, viewAction);
+                Uri.parse("rtsp://192.168.42.1/live")
+        );*/
+//        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     @Override
@@ -79,7 +105,7 @@ public class MainActivity extends ActionBarActivity {
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
-        Action viewAction = Action.newAction(
+      /*  Action viewAction = Action.newAction(
                 Action.TYPE_VIEW, // TODO: choose an action type.
                 "Main Page", // TODO: Define a title for the content shown.
                 // TODO: If you have web page content that matches this app activity's content,
@@ -90,6 +116,6 @@ public class MainActivity extends ActionBarActivity {
                 Uri.parse("android-app://com.yiphotobooth/http/host/path")
         );
         AppIndex.AppIndexApi.end(client, viewAction);
-        client.disconnect();
+        client.disconnect();*/
     }
 }

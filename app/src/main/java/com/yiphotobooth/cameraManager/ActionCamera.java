@@ -12,8 +12,9 @@ public enum ActionCamera {
     TAKE_PHOTO("{\"msg_id\":769,\"token\":0}"),
     TAKE_VIDEO_START("{\"msg_id\":513,\"token\":0}"),
     TAKE_VIDEO_STOP("{\"msg_id\":514,\"token\":0}"),
-    ALLOW_STREAM("{\"msg_id\":259,\"token\":0,\"param\":\"none_force\"}");
-
+    ALLOW_STREAM("{\"msg_id\":259,\"token\":0,\"param\":\"none_force\"}"),
+   REMOVE_FILE("{\"msg_id\":1281,\"token\":0,\"param\":\"/var/www/DCIM\""),
+    SET_PATH("{\"msg_id\":1283,\"token\":0,\"param\":\"/var/www/DCIM\"");
     private String jsonRequest;
 
 
@@ -24,10 +25,20 @@ public enum ActionCamera {
     public String getJsonRequest(String token) {
         try {
             JSONObject jsonObject = new JSONObject(jsonRequest);
-            jsonRequest = jsonObject.put("token", token).toString();
+            jsonRequest = jsonObject.put("token",  Integer.parseInt(token)).toString();
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jsonRequest;
     }
-}
+    public String getJsonRequestDelete(String fileName) {
+        try {
+            JSONObject jsonObject = new JSONObject(jsonRequest);
+            jsonRequest = jsonObject.put("param",  Integer.parseInt(fileName)).toString();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonRequest;
+    }
+
+    }
